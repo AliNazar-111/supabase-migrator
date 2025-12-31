@@ -1,6 +1,6 @@
 {
     "name": "supabase-migrator",
-    "version": "1.0.8",
+    "version": "1.0.9",
     "description": "Complete migration and cleanup toolkit for Supabase PostgreSQL databases",
     "main": "./dist/index.cjs",
     "module": "./dist/index.mjs",
