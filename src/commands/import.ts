@@ -1,7 +1,7 @@
 import { Database } from '../lib/database';
 import { Logger } from '../lib/logger';
 import { MigrationRunner } from '../lib/migration-runner';
-import { GlobalOptions, MigrationResult } from '../types';
+import { GlobalOptions, MigrationResult } from '../types/index';
 
 export class ImportCommand {
     private logger: Logger;

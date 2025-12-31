@@ -12,14 +12,19 @@ import { MigrateAllCommand } from './commands/migrate-all';
 import { DeleteCommand } from './commands/delete';
 import { ExportCommand } from './commands/export';
 import { ImportCommand } from './commands/import';
+import { EdgeFunctionsCommand } from './commands/edge-functions';
+import { Database } from './lib/database';
+import { FunctionsExporter } from './lib/functions-exporter';
 import { GlobalOptions } from './types/index';
 
 const program = new Command();
 
+const packageJson = require('../package.json');
+
 program
     .name('supabase-migrator')
     .description('Complete migration and cleanup toolkit for Supabase PostgreSQL databases')
-    .version('1.0.0');
+    .version(packageJson.version);
 
 // Global options helper
 function addGlobalOptions(cmd: Command): Command {
@@ -37,6 +42,7 @@ function addGlobalOptions(cmd: Command): Command {
         .option('--source-key <key>', 'Source Supabase service role key (for storage)')
         .option('--target-url <url>', 'Target Supabase project URL (for storage)')
         .option('--target-key <key>', 'Target Supabase service role key (for storage)')
+        .option('--token <token>', 'Supabase Access Token (Personal Access Token)')
         .option('-o, --output <folder>', 'Output folder for SQL files and logs', './supabase-migrator');
 }
 
@@ -128,6 +134,22 @@ addGlobalOptions(program.command('migrate:all'))
         }
     });
 
+// migrate:edge-functions
+addGlobalOptions(program.command('migrate:edge-functions'))
+    .description('Migrate Supabase Edge Functions between projects')
+    .action(async (options: GlobalOptions) => {
+        const logger = new Logger(options.output);
+        const command = new EdgeFunctionsCommand(logger);
+        try {
+            const result = await command.execute(options);
+            logger.summary(result);
+            process.exit(result.success ? 0 : 1);
+        } catch (error: any) {
+            logger.error(error.message);
+            process.exit(1);
+        }
+    });
+
 // migrate:buckets
 addGlobalOptions(program.command('migrate:buckets'))
     .description('Migrate storage buckets')
@@ -162,6 +184,34 @@ addGlobalOptions(program.command('export:database'))
         } catch (error: any) {
             logger.error(error.message);
             process.exit(1);
+        }
+    });
+
+// export:functions
+addGlobalOptions(program.command('export:functions'))
+    .description('Export only functions from a schema to SQL file')
+    .action(async (options: GlobalOptions) => {
+        if (!options.source) {
+            console.error('Error: --source is required');
+            process.exit(1);
+        }
+        const logger = new Logger(options.output);
+        const db = new Database({ connectionString: options.source });
+        try {
+            await db.connect();
+            const outputDir = options.output || './supabase-migrator';
+            const schema = options.schema || 'public';
+            const exporter = new FunctionsExporter(db, logger, outputDir);
+            const file = await exporter.exportFunctions(schema);
+            if (file) {
+                logger.info(`Exported to: ${file}`);
+            }
+            process.exit(0);
+        } catch (error: any) {
+            logger.error(error.message);
+            process.exit(1);
+        } finally {
+            await db.disconnect();
         }
     });
 
@@ -253,6 +303,22 @@ addGlobalOptions(program.command('delete:trigger'))
         const command = new DeleteCommand(logger);
         try {
             const result = await command.deleteTrigger(options);
+            logger.summary(result);
+            process.exit(result.success ? 0 : 1);
+        } catch (error: any) {
+            logger.error(error.message);
+            process.exit(1);
+        }
+    });
+
+// delete:all
+addGlobalOptions(program.command('delete:all'))
+    .description('FULL CLEANUP: Delete all triggers, functions, and tables in schema')
+    .action(async (options: GlobalOptions) => {
+        const logger = new Logger(options.output);
+        const command = new DeleteCommand(logger);
+        try {
+            const result = await command.deleteAll(options);
             logger.summary(result);
             process.exit(result.success ? 0 : 1);
         } catch (error: any) {

@@ -14,8 +14,9 @@
 -  **Data Migration** - Streaming/batched data export in SQL or JSON formats.
 -  **Dependency-Aware** - Automatically orders table exports based on foreign key dependencies.
 -  **Idempotent Imports** - SQL generations use `IF NOT EXISTS` and `CREATE OR REPLACE` for safe re-runs.
+-  **Edge Function Migration** - Push-button deployment of Edge Functions across projects.
 -  **Storage Support** - Securely sync buckets via Supabase Admin APIs and export RLS policies.
--  **Cleanup Utility** - Powerful `delete:*` commands with `TRUNCATE` and `CASCADE` support.
+-  **Cleanup Utility** - Powerful `delete:*` commands with `TRUNCATE`, `CASCADE`, and full schema wipe support.
 -  **Developer Friendly** - Detailed logs, dry-run modes, progress tracking, and interactive summaries.
 
 ---
@@ -38,99 +39,78 @@ Create a `.env` file or set environment variables:
 
 ```env
 # Source Database
-SOURCE_CONNECTION_STRING=postgresql://postgres:password@db.source-project.supabase.co:5432/postgres
+SOURCE_CONNECTION_STRING=postgresql://postgres:password@db.source-ref.supabase.co:5432/postgres
 
 # Target Database
-TARGET_CONNECTION_STRING=postgresql://postgres:password@db.target-project.supabase.co:5432/postgres
+TARGET_CONNECTION_STRING=postgresql://postgres:password@db.target-ref.supabase.co:5432/postgres
+
+# Supabase Access Token (For Edge Functions)
+SUPABASE_ACCESS_TOKEN=sbp_...
 
 # Storage Migration API (Required for migrate:buckets)
-SOURCE_SUPABASE_URL=https://source.supabase.co
+SOURCE_SUPABASE_URL=https://source-ref.supabase.co
 SOURCE_SERVICE_ROLE_KEY=ey...
-TARGET_SUPABASE_URL=https://target.supabase.co
+TARGET_SUPABASE_URL=https://target-ref.supabase.co
 TARGET_SERVICE_ROLE_KEY=ey...
 ```
 
 ---
 
-## Usage Guide
+## Usage Guide (Copy-Paste Examples)
 
-### 1. Database Migration (Direct)
-
+### 1. Complete Database Migration
 Migrate everything directly from one database to another.
 
 ```bash
-# Migrate all objects and data
 supabase-migrator migrate:all \
-  --source $SOURCE_CONNECTION_STRING \
-  --target $TARGET_CONNECTION_STRING
-
-# Migrate schema only
-supabase-migrator migrate:schema \
-  --source $SOURCE_CONNECTION_STRING \
-  --target $TARGET_CONNECTION_STRING
+  --source "postgresql://postgres:password@db.source-ref.supabase.co:5432/postgres" \
+  --target "postgresql://postgres:password@db.target-ref.supabase.co:5432/postgres"
 ```
 
-### 2. Export & Import Workflow (Recommended)
-
-Better for version control and manual review.
+### 2. Edge Function Migration
+Deploy your edge functions from one project to another.
 
 ```bash
-# 1. Export database to SQL files
-supabase-migrator export:database \
-  --source $SOURCE_CONNECTION_STRING \
-  --output ./backup
-
-# 2. Preview the import
-supabase-migrator import:database \
-  --target $TARGET_CONNECTION_STRING \
-  --source ./backup \
-  --dry-run
-
-# 3. Apply the migration
-supabase-migrator import:database \
-  --target $TARGET_CONNECTION_STRING \
-  --source ./backup
+supabase-migrator migrate:edge-functions \
+  --source "postgresql://postgres:password@db.source-ref.supabase.co:5432/postgres" \
+  --target "postgresql://postgres:password@db.target-ref.supabase.co:5432/postgres" \
+  --token "sbp_your_access_token_here"
 ```
 
-### 3. Storage Migration
-
-Safe bucket synchronization and manual policy application.
+### 3. Granular Schema Migration
+Migrate only specific parts of your database.
 
 ```bash
-# Sync bucket configuration
-supabase-migrator migrate:buckets \
-  --source-url $SOURCE_SUPABASE_URL \
-  --source-key $SOURCE_SERVICE_ROLE_KEY \
-  --target-url $TARGET_SUPABASE_URL \
-  --target-key $TARGET_SERVICE_ROLE_KEY
+# Schema only (tables, types, indexes)
+supabase-migrator migrate:schema --source "..." --target "..."
 
-# Export policies for manual review
-supabase-migrator export:bucket-policies \
-  --source $SOURCE_CONNECTION_STRING
+# Functions only
+supabase-migrator migrate:functions --source "..." --target "..."
+
+# Triggers only
+supabase-migrator migrate:triggers --source "..." --target "..."
 ```
 
-*Note: Bucket policies should be reviewed in the output `bucket-policies.sql` and applied manually in the target SQL Editor.*
-
-### 4. Database Cleanup
-
+### 4. Database Cleanup (Wipe)
 Powerful and destructive cleanup tools.
 
 ```bash
-# Preview deleting all data from public schema
-supabase-migrator delete:data --all --dry-run
+# FULL WIPE: Delete all tables, functions, and triggers in public schema
+supabase-migrator delete:all --source "..." --force
 
-# Force delete all data except specific tables
-supabase-migrator delete:data \
-  --source $TARGET_CONNECTION_STRING \
-  --all \
-  --exclude-table migrations \
-  --force
+# Data only: Truncate all tables
+supabase-migrator delete:data --source "..." --all --force
+```
 
-# Delete specific function overload
-supabase-migrator delete:function \
-  --function calculate_stats \
-  --signature "calculate_stats(int, timestamp)" \
-  --force
+### 5. Storage Migration
+Sync bucket configuration between projects.
+
+```bash
+supabase-migrator migrate:buckets \
+  --source-url "https://source.supabase.co" \
+  --source-key "ey..." \
+  --target-url "https://target.supabase.co" \
+  --target-key "ey..."
 ```
 
 ---
@@ -141,11 +121,16 @@ supabase-migrator delete:function \
 |---------|-------------|
 | `migrate:all` | Schema + Functions + Triggers + Data |
 | `migrate:schema` | Tables, Types, Constraints, Indexes |
+| `migrate:functions` | Migrate DB functions only |
+| `migrate:triggers` | Migrate DB triggers only |
 | `migrate:data` | Table data only (Streaming) |
+| `migrate:edge-functions` | Deploy Edge Functions between projects |
 | `migrate:buckets`| Sync storage buckets via Admin API |
 | `export:database`| Full introspection to SQL/JSON files |
+| `export:functions`| Export DB functions to SQL file |
 | `import:database`| Apply SQL files in correct order |
 | `export:bucket-policies`| Export storage RLS policies to SQL |
+| `delete:all` | FULL WIPE (Tables, Functions, Triggers) |
 | `delete:data` | TRUNCATE/DELETE table data |
 | `delete:function`| Drop functions (supports overloading) |
 | `delete:trigger` | Drop triggers |
@@ -215,22 +200,3 @@ Before publishing to npm, follow these steps to ensure a high-quality release:
 
 ---
 
-## Publishing and Releases
-
-Automated scripts are provided for standard version bumps and publication:
-
-```bash
-# Push a patch release (1.0.0 -> 1.0.1)
-npm run release:patch
-
-# Push a minor release (1.0.0 -> 1.1.0)
-npm run release:minor
-
-# Push a major release (1.0.0 -> 2.0.0)
-npm run release:major
-```
-
-These scripts will:
-1. Automatically bump the version in `package.json`
-2. Run the `prepublishOnly` script (which runs `npm run build`)
-3. Publish the package to npm with public access

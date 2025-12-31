@@ -3,7 +3,7 @@ import { DataCommand } from './data';
 import { FunctionsCommand } from './functions';
 import { TriggersCommand } from './triggers';
 import { Logger } from '../lib/logger';
-import { GlobalOptions, MigrationResult } from '../types';
+import { GlobalOptions, MigrationResult } from '../types/index';
 
 export class MigrateAllCommand {
     private logger: Logger;

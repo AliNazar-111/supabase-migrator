@@ -98,9 +98,21 @@ export class DataExporter {
         let offset = 0;
         let processedRows = 0;
 
+        // Try to get primary key for consistent ordering
+        const pkRes = await this.db.query(`
+            SELECT a.attname
+            FROM pg_index i
+            JOIN pg_attribute a ON a.attrelid = i.indrelid AND a.attnum = ANY(i.indkey)
+            WHERE i.indrelid = ($1 || '.' || $2)::regclass
+            AND i.indisprimary;
+        `, [schemaName, tableName]).catch(() => ({ rows: [] }));
+
+        const pkCols = pkRes.rows.map((r: any) => `"${r.attname}"`).join(', ');
+        const orderBy = pkCols ? `ORDER BY ${pkCols}` : '';
+
         while (offset < totalRows) {
             const result = await this.db.query(
-                `SELECT * FROM "${schemaName}"."${tableName}" LIMIT $1 OFFSET $2`,
+                `SELECT * FROM "${schemaName}"."${tableName}" ${orderBy} LIMIT $1 OFFSET $2`,
                 [batchSize, offset]
             );
 
@@ -148,9 +160,21 @@ export class DataExporter {
         let processedRows = 0;
         let isFirst = true;
 
+        // Try to get primary key for consistent ordering
+        const pkRes = await this.db.query(`
+            SELECT a.attname
+            FROM pg_index i
+            JOIN pg_attribute a ON a.attrelid = i.indrelid AND a.attnum = ANY(i.indkey)
+            WHERE i.indrelid = ($1 || '.' || $2)::regclass
+            AND i.indisprimary;
+        `, [schemaName, tableName]).catch(() => ({ rows: [] }));
+
+        const pkCols = pkRes.rows.map((r: any) => `"${r.attname}"`).join(', ');
+        const orderBy = pkCols ? `ORDER BY ${pkCols}` : '';
+
         while (offset < totalRows) {
             const result = await this.db.query(
-                `SELECT * FROM "${schemaName}"."${tableName}" LIMIT $1 OFFSET $2`,
+                `SELECT * FROM "${schemaName}"."${tableName}" ${orderBy} LIMIT $1 OFFSET $2`,
                 [batchSize, offset]
             );
 
@@ -202,7 +226,7 @@ export class DataExporter {
         return `'${String(value).replace(/'/g, "''")}'`;
     }
 
-    private async getTablesInDependencyOrder(schemaName: string): Promise<string[]> {
+    public async getTablesInDependencyOrder(schemaName: string): Promise<string[]> {
         // 1. Get ALL tables in the schema first
         const allTablesRes = await this.db.query(`
             SELECT table_name 

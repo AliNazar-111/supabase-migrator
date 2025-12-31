@@ -1,6 +1,6 @@
 import { Database } from '../lib/database';
 import { Logger } from '../lib/logger';
-import { GlobalOptions, MigrationResult } from '../types';
+import { GlobalOptions, MigrationResult } from '../types/index';
 
 export class DeleteCommand {
     private logger: Logger;
@@ -381,8 +381,10 @@ export class DeleteCommand {
                 pg_get_function_identity_arguments(p.oid) as args
             FROM pg_proc p
             JOIN pg_namespace n ON p.pronamespace = n.oid
+            LEFT JOIN pg_depend d ON d.objid = p.oid AND d.deptype = 'e'
             WHERE n.nspname = $1
-            AND p.prokind = 'f'  -- Only functions, not procedures
+            AND p.prokind = 'f'
+            AND d.objid IS NULL -- Exclude extension-owned functions
             ORDER BY p.proname
         `, [schema]);
 
@@ -526,5 +528,94 @@ export class DeleteCommand {
                 errors: errors.length > 0 ? errors : undefined
             }
         };
+    }
+
+    // ========== DELETE TABLES ==========
+
+    async deleteTables(db: Database, schema: string, dryRun: boolean): Promise<MigrationResult> {
+        const tablesRes = await db.query(`
+            SELECT table_name 
+            FROM information_schema.tables 
+            WHERE table_schema = $1 
+            AND table_type = 'BASE TABLE'
+            ORDER BY table_name
+        `, [schema]);
+
+        const tables = tablesRes.rows.map((r: any) => r.table_name);
+        this.logger.info(`Found ${tables.length} tables to drop`);
+
+        if (dryRun) {
+            this.logger.dryRun('Would drop tables:');
+            tables.forEach((t: string) => this.logger.info(`  - ${t}`));
+            return { success: true, message: `Dry run: ${tables.length} tables would be dropped` };
+        }
+
+        const errors: string[] = [];
+
+        // Drop tables with CASCADE to handle foreign keys
+        for (const table of tables) {
+            try {
+                await db.query(`DROP TABLE IF EXISTS "${schema}"."${table}" CASCADE;`);
+                this.logger.success(`Dropped table: ${table}`);
+            } catch (e: any) {
+                const errorMsg = `Failed to drop table ${table}: ${e.message}`;
+                this.logger.error(errorMsg);
+                errors.push(errorMsg);
+            }
+        }
+
+        return {
+            success: errors.length === 0,
+            message: `Dropped ${tables.length - errors.length}/${tables.length} tables`,
+            details: {
+                itemsProcessed: tables.length,
+                errors: errors.length > 0 ? errors : undefined
+            }
+        };
+    }
+
+    // ========== DELETE ALL (ORCHESTRATOR) ==========
+
+    async deleteAll(options: GlobalOptions): Promise<MigrationResult> {
+        if (!options.source) {
+            throw new Error('--source is required');
+        }
+
+        if (!options.force && !options.dryRun) {
+            throw new Error('This is a destructive operation. Use --force to confirm or --dry-run to preview');
+        }
+
+        const db = new Database({ connectionString: options.source });
+
+        try {
+            await db.connect();
+            const schema = options.schema || 'public';
+
+            this.logger.warn(`STARTING FULL CLEANUP OF SCHEMA: ${schema}`);
+            
+            // 1. Triggers
+            const triggerResult = await this.deleteAllTriggers(db, schema, options.dryRun || false);
+            
+            // 2. Functions
+            const functionResult = await this.deleteAllFunctions(db, schema, options.dryRun || false);
+            
+            // 3. Tables (Schema)
+            const tableResult = await this.deleteTables(db, schema, options.dryRun || false);
+
+            const success = triggerResult.success && functionResult.success && tableResult.success;
+
+            return {
+                success,
+                message: success ? 'Full cleanup completed successfully' : 'Cleanup completed with some errors',
+                details: {
+                    itemsProcessed: (triggerResult.details?.itemsProcessed || 0) + 
+                                    (functionResult.details?.itemsProcessed || 0) + 
+                                    (tableResult.details?.itemsProcessed || 0)
+                }
+            };
+
+        } finally {
+            await db.disconnect();
+        }
     }
 }

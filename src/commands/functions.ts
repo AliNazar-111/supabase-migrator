@@ -1,6 +1,6 @@
 import { Database } from '../lib/database';
 import { Logger } from '../lib/logger';
-import { GlobalOptions, MigrationResult, FunctionInfo } from '../types';
+import { GlobalOptions, MigrationResult, FunctionInfo } from '../types/index';
 
 export class FunctionsCommand {
     private logger: Logger;
@@ -82,7 +82,9 @@ export class FunctionsCommand {
             FROM pg_proc p
             JOIN pg_namespace n ON p.pronamespace = n.oid
             JOIN pg_language l ON p.prolang = l.oid
+            LEFT JOIN pg_depend d ON d.objid = p.oid AND d.deptype = 'e'
             WHERE n.nspname = $1
+            AND d.objid IS NULL -- Exclude extension-owned functions
         `;
 
         const params: any[] = [schema];

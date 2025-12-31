@@ -4,7 +4,7 @@ import { SchemaExporter } from '../lib/schema-exporter';
 import { FunctionsExporter } from '../lib/functions-exporter';
 import { TriggersExporter } from '../lib/triggers-exporter';
 import { DataExporter } from '../lib/data-exporter';
-import { GlobalOptions, MigrationResult } from '../types';
+import { GlobalOptions, MigrationResult } from '../types/index';
 
 export class ExportCommand {
     private logger: Logger;

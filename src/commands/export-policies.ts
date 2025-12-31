@@ -1,6 +1,6 @@
 import { Database } from '../lib/database';
 import { Logger } from '../lib/logger';
-import { GlobalOptions, MigrationResult, PolicyInfo } from '../types';
+import { GlobalOptions, MigrationResult, PolicyInfo } from '../types/index';
 
 export class ExportPoliciesCommand {
     private logger: Logger;

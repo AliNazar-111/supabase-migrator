@@ -1,6 +1,6 @@
 import { Logger } from '../lib/logger';
 import { StorageAdmin } from '../lib/storage-admin';
-import { GlobalOptions, MigrationResult, BucketInfo } from '../types';
+import { GlobalOptions, MigrationResult, BucketInfo } from '../types/index';
 
 export class BucketsCommand {
     private logger: Logger;

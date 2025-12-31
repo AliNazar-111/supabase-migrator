@@ -1,6 +1,6 @@
 import { Database } from '../lib/database';
 import { Logger } from '../lib/logger';
-import { GlobalOptions, MigrationResult } from '../types';
+import { GlobalOptions, MigrationResult } from '../types/index';
 
 export class SchemaCommand {
     private logger: Logger;
@@ -123,6 +123,23 @@ export class SchemaCommand {
                         this.logger.success(`Index: ${index.indexname}`);
                     } catch (e: any) {
                         this.logger.warn(`Index ${index.indexname}: ${e.message}`);
+                    }
+                }
+                itemsProcessed++;
+            }
+
+            // 6. Migrate Views
+            this.logger.info('Migrating views...');
+            const views = await this.getViews(source, schema);
+            for (const view of views) {
+                sqlStatements.push(view.definition);
+
+                if (!options.dryRun) {
+                    try {
+                        await target.query(view.definition);
+                        this.logger.success(`View: ${view.viewname}`);
+                    } catch (e: any) {
+                        this.logger.warn(`View ${view.viewname}: ${e.message}`);
                     }
                 }
                 itemsProcessed++;
@@ -262,5 +279,21 @@ export class SchemaCommand {
         `, [schema]);
 
         return result.rows;
+    }
+
+    private async getViews(db: Database, schema: string): Promise<any[]> {
+        const result = await db.query(`
+            SELECT 
+                table_name as viewname,
+                view_definition
+            FROM information_schema.views
+            WHERE table_schema = $1
+            ORDER BY table_name
+        `, [schema]);
+
+        return result.rows.map((row: any) => ({
+            viewname: row.viewname,
+            definition: `CREATE OR REPLACE VIEW "${schema}"."${row.viewname}" AS\n${row.view_definition};`
+        }));
     }
 }

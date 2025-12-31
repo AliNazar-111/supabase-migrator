@@ -1,6 +1,6 @@
 import { Database } from '../lib/database';
 import { Logger } from '../lib/logger';
-import { GlobalOptions, MigrationResult, TriggerInfo } from '../types';
+import { GlobalOptions, MigrationResult, TriggerInfo } from '../types/index';
 
 export class TriggersCommand {
     private logger: Logger;
