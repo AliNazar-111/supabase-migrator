@@ -197,6 +197,19 @@ supabase-migrator import:database --target "TARGET_URL" --source "./supabase-mig
 3. **Use `--force` in CI/CD**: If running in a pipeline, use the `--force` flag to skip interactive prompts.
 4. **Primary Keys**: Ensure your tables have primary keys for the most reliable data migration.
 
+### 💣 Fresh Start / Full Mirror Example
+If you want to **completely overwrite** your target database to be an exact mirror of the source, you can chain the delete and migrate commands.
+
+**⚠️ WARNING:** This will delete EVERYTHING in your target database first.
+
+```bash
+# Delete everything in target, then migrate everything from source
+npm install -g supabase-migrator@latest
+
+supabase-migrator delete:all --source "postgresql://postgres:pass@db.target.supabase.co:5432/postgres" --force && \
+supabase-migrator migrate:all --source "postgresql://postgres:pass@db.source.supabase.co:5432/postgres" --target "postgresql://postgres:pass@db.target.supabase.co:5432/postgres" --force
+```
+
 ---
 
 
