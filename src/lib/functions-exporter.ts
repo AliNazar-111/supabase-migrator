@@ -59,8 +59,10 @@ export class FunctionsExporter {
             FROM pg_proc p
             JOIN pg_namespace n ON p.pronamespace = n.oid
             JOIN pg_language l ON p.prolang = l.oid
+            LEFT JOIN pg_depend d ON d.objid = p.oid AND d.deptype = 'e'
             WHERE n.nspname = $1
-            AND p.prokind = 'f'  -- Only functions, not procedures
+            AND p.prokind = 'f' 
+            AND d.objid IS NULL -- Exclude extension-owned functions
             ORDER BY p.proname
         `, [schemaName]);
 

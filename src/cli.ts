@@ -1,18 +1,18 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander';
-import { Logger } from '../src/lib/logger';
-import { SchemaCommand } from '../src/commands/schema';
-import { DataCommand } from '../src/commands/data';
-import { FunctionsCommand } from '../src/commands/functions';
-import { TriggersCommand } from '../src/commands/triggers';
-import { BucketsCommand } from '../src/commands/buckets';
-import { ExportPoliciesCommand } from '../src/commands/export-policies';
-import { MigrateAllCommand } from '../src/commands/migrate-all';
-import { DeleteCommand } from '../src/commands/delete';
-import { ExportCommand } from '../src/commands/export';
-import { ImportCommand } from '../src/commands/import';
-import { GlobalOptions } from '../src/types';
+import { Logger } from './lib/logger';
+import { SchemaCommand } from './commands/schema';
+import { DataCommand } from './commands/data';
+import { FunctionsCommand } from './commands/functions';
+import { TriggersCommand } from './commands/triggers';
+import { BucketsCommand } from './commands/buckets';
+import { ExportPoliciesCommand } from './commands/export-policies';
+import { MigrateAllCommand } from './commands/migrate-all';
+import { DeleteCommand } from './commands/delete';
+import { ExportCommand } from './commands/export';
+import { ImportCommand } from './commands/import';
+import { GlobalOptions } from './types/index';
 
 const program = new Command();
 

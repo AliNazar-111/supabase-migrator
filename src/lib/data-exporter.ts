@@ -203,57 +203,8 @@ export class DataExporter {
     }
 
     private async getTablesInDependencyOrder(schemaName: string): Promise<string[]> {
-        // Get all tables with their foreign key dependencies
-        const result = await this.db.query(`
-            WITH RECURSIVE dep_graph AS (
-                -- Base case: tables with no dependencies
-                SELECT 
-                    t.table_name,
-                    0 as depth,
-                    ARRAY[t.table_name] as path
-                FROM information_schema.tables t
-                WHERE t.table_schema = $1
-                AND t.table_type = 'BASE TABLE'
-                AND NOT EXISTS (
-                    SELECT 1 
-                    FROM information_schema.table_constraints tc
-                    WHERE tc.table_schema = $1
-                    AND tc.table_name = t.table_name
-                    AND tc.constraint_type = 'FOREIGN KEY'
-                )
-                
-                UNION
-                
-                -- Recursive case: tables depending on already processed tables
-                SELECT 
-                    t.table_name,
-                    dg.depth + 1,
-                    dg.path || t.table_name
-                FROM information_schema.tables t
-                JOIN information_schema.table_constraints tc 
-                    ON tc.table_schema = t.table_schema 
-                    AND tc.table_name = t.table_name
-                JOIN information_schema.constraint_column_usage ccu
-                    ON ccu.constraint_schema = tc.constraint_schema
-                    AND ccu.constraint_name = tc.constraint_name
-                JOIN dep_graph dg 
-                    ON dg.table_name = ccu.table_name
-                WHERE t.table_schema = $1
-                AND t.table_type = 'BASE TABLE'
-                AND tc.constraint_type = 'FOREIGN KEY'
-                AND NOT t.table_name = ANY(dg.path)
-            )
-            SELECT DISTINCT table_name
-            FROM dep_graph
-            ORDER BY MAX(depth), table_name
-        `, [schemaName]);
-
-        if (result.rows.length > 0) {
-            return result.rows.map((r: any) => r.table_name);
-        }
-
-        // Fallback: simple alphabetical order if dependency analysis fails
-        const fallbackResult = await this.db.query(`
+        // 1. Get ALL tables in the schema first
+        const allTablesRes = await this.db.query(`
             SELECT table_name 
             FROM information_schema.tables 
             WHERE table_schema = $1 
@@ -261,6 +212,67 @@ export class DataExporter {
             ORDER BY table_name
         `, [schemaName]);
 
-        return fallbackResult.rows.map((r: any) => r.table_name);
+        const allTableNames = allTablesRes.rows.map((r: any) => r.table_name);
+
+        if (allTableNames.length === 0) return [];
+
+        // 2. Try to get dependent tables using a recursive CTE
+        // This CTE finds tables and their maximum dependency depth
+        const depResult = await this.db.query(`
+            WITH RECURSIVE fk_deps AS (
+                -- Direct foreign key relationships
+                SELECT 
+                    tc.table_name as source_table,
+                    ccu.table_name as target_table
+                FROM information_schema.table_constraints tc
+                JOIN information_schema.constraint_column_usage ccu
+                    ON ccu.constraint_schema = tc.constraint_schema
+                    AND ccu.constraint_name = tc.constraint_name
+                WHERE tc.table_schema = $1
+                AND tc.constraint_type = 'FOREIGN KEY'
+                AND ccu.table_schema = $1 -- Only consider dependencies within the same schema for ordering
+                AND tc.table_name != ccu.table_name -- Ignore self-references
+            ),
+            dep_depth AS (
+                -- Base case: tables with no incoming FKs (from other tables in the same schema)
+                SELECT 
+                    t.table_name,
+                    0 as depth
+                FROM information_schema.tables t
+                WHERE t.table_schema = $1
+                AND t.table_type = 'BASE TABLE'
+                AND NOT EXISTS (
+                    SELECT 1 FROM fk_deps fd WHERE fd.source_table = t.table_name
+                )
+                
+                UNION ALL
+                
+                -- Recursive case: tables that depend on tables we've already found
+                SELECT 
+                    fd.source_table,
+                    dd.depth + 1
+                FROM fk_deps fd
+                JOIN dep_depth dd ON fd.target_table = dd.table_name
+                WHERE dd.depth < 20 -- Prevent infinite loops in case of cycles
+            )
+            SELECT table_name, MAX(depth) as max_depth
+            FROM dep_depth
+            GROUP BY table_name
+            ORDER BY max_depth ASC
+        `, [schemaName]);
+
+        const orderedTables: string[] = depResult.rows.map((r: any) => r.table_name);
+
+        // 3. Merge with all tables to ensure none are missed
+        // We start with the ordered ones, then add any that weren't included (e.g. part of a cycle)
+        const finalTables = [...orderedTables];
+
+        for (const tableName of allTableNames) {
+            if (!finalTables.includes(tableName)) {
+                finalTables.push(tableName);
+            }
+        }
+
+        return finalTables;
     }
 }

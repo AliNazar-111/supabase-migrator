@@ -173,3 +173,64 @@ supabase-migrator delete:function \
 MIT License. See [LICENSE](./LICENSE) for details.
 
 ---
+
+## Pre-publish Checklist
+
+Before publishing to npm, follow these steps to ensure a high-quality release:
+
+1. **Self-Check**:
+   - [ ] Version in `package.json` is updated according to SemVer.
+   - [ ] `.env.example` is up to date with new features.
+   - [ ] All sensitive credentials (tokens, passwords) are removed from code and examples.
+
+2. **Validation Commands**:
+   ```bash
+   # 1. Clean and build the package
+   npm run clean
+   npm run build
+
+   # 2. Run all tests
+   npm run test
+
+   # 3. Lint and format code
+   npm run lint
+   npm run format
+
+   # 4. Dry-run the package contents
+   npm pack --dry-run
+   ```
+
+3. **Verify Output**:
+   Check the `npm pack --dry-run` output. It should ONLY contain:
+   - `dist/` (CJS, ESM, and Types)
+   - `README.md`
+   - `LICENSE`
+   - `.env.example`
+   - `package.json`
+
+4. **Publish**:
+   ```bash
+   npm publish --access public
+   ```
+
+---
+
+## Publishing and Releases
+
+Automated scripts are provided for standard version bumps and publication:
+
+```bash
+# Push a patch release (1.0.0 -> 1.0.1)
+npm run release:patch
+
+# Push a minor release (1.0.0 -> 1.1.0)
+npm run release:minor
+
+# Push a major release (1.0.0 -> 2.0.0)
+npm run release:major
+```
+
+These scripts will:
+1. Automatically bump the version in `package.json`
+2. Run the `prepublishOnly` script (which runs `npm run build`)
+3. Publish the package to npm with public access

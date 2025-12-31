@@ -2,19 +2,37 @@
     "name": "supabase-migrator",
     "version": "1.0.0",
     "description": "Complete migration and cleanup toolkit for Supabase PostgreSQL databases",
-    "main": "dist/index.js",
-    "types": "dist/index.d.ts",
-    "bin": {
-        "supabase-migrator": "dist/bin/cli.js"
+    "main": "./dist/index.cjs",
+    "module": "./dist/index.mjs",
+    "types": "./dist/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.mjs",
+            "require": "./dist/index.cjs"
+        }
     },
+    "bin": {
+        "supabase-migrator": "./dist/cli.cjs"
+    },
+    "files": [
+        "dist",
+        "!dist/**/*.map",
+        "README.md",
+        "LICENSE",
+        ".env.example"
+    ],
     "scripts": {
-        "build": "tsc",
-        "dev": "tsc --watch",
+        "build": "tsup",
+        "dev": "tsup --watch",
         "clean": "rm -rf dist",
         "test": "jest",
-        "lint": "eslint 'src/**/*.ts' 'bin/**/*.ts'",
-        "format": "prettier --write 'src/**/*.ts' 'bin/**/*.ts'",
-        "prepublishOnly": "npm run clean && npm run build"
+        "lint": "eslint 'src/**/*.ts' 'tests/**/*.ts' 'examples/**/*.ts'",
+        "format": "prettier --write 'src/**/*.ts' 'tests/**/*.ts' 'examples/**/*.ts'",
+        "prepublishOnly": "npm run build",
+        "release:patch": "npm version patch && npm publish --access public",
+        "release:minor": "npm version minor && npm publish --access public",
+        "release:major": "npm version major && npm publish --access public"
     },
     "keywords": [
         "supabase",
@@ -30,9 +48,11 @@
     "license": "MIT",
     "dependencies": {
         "@supabase/supabase-js": "^2.89.0",
+        "@types/dotenv": "^6.1.1",
         "chalk": "^4.1.2",
         "cli-table3": "^0.6.3",
         "commander": "^11.1.0",
+        "dotenv": "^17.2.3",
         "ora": "^5.4.1",
         "pg": "^8.16.3"
     },
@@ -48,6 +68,7 @@
         "jest": "^30.2.0",
         "prettier": "^3.7.4",
         "ts-jest": "^29.4.6",
+        "tsup": "^8.5.1",
         "typescript": "^5.3.3"
     },
     "engines": {
