@@ -1,202 +1,208 @@
-# supabase-migrator
+# Supabase Migrator 🚀
 
-**Comprehensive migration and cleanup toolkit for Supabase PostgreSQL databases.**
+A powerful, all-in-one CLI toolkit for seamless migration, cleanup, and management of Supabase PostgreSQL databases.
 
-[![NPM Version](https://img.shields.io/npm/v/supabase-migrator.svg)](https://www.npmjs.com/package/supabase-migrator)
+[![npm version](https://badge.fury.io/js/supabase-migrator.svg)](https://www.npmjs.com/package/supabase-migrator)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ---
 
-## Features
+## 🌟 Features
 
--  **Complete Introspection** - Introspects extensions, custom types, sequences, tables, constraints, indexes, views, and functions.
--  **Schema Migration** - Safe recreation of complex schemas across projects.
--  **Data Migration** - Streaming/batched data export in SQL or JSON formats.
--  **Dependency-Aware** - Automatically orders table exports based on foreign key dependencies.
--  **Idempotent Imports** - SQL generations use `IF NOT EXISTS` and `CREATE OR REPLACE` for safe re-runs.
--  **Edge Function Migration** - Push-button deployment of Edge Functions across projects.
--  **Storage Support** - Securely sync buckets via Supabase Admin APIs and export RLS policies.
--  **Cleanup Utility** - Powerful `delete:*` commands with `TRUNCATE`, `CASCADE`, and full schema wipe support.
--  **Developer Friendly** - Detailed logs, dry-run modes, progress tracking, and interactive summaries.
+- **Full Migration**: One command to migrate Schema, Functions, Triggers, and Data.
+- **Stable Data Sync**: Intelligent batching with primary-key-based stable pagination.
+- **Edge Function Support**: Deploy Edge Functions directly between projects.
+- **Storage Migration**: Move buckets and their security policies effortlessly.
+- **Cleanup Toolkit**: Safely delete specific tables, functions, or perform a total schema reset.
+- **Smart Dependencies**: Automatically orders table migration based on foreign key relationships.
+- **Dry Run Support**: Preview changes before they hit your production database.
 
 ---
 
-## Installation
+## 🚀 Quick Start
+
+### 1. Installation
+
+Install globally via NPM:
 
 ```bash
-# Install globally
 npm install -g supabase-migrator
-
-# Or run via npx
-npx supabase-migrator --help
 ```
 
----
+### 2. Environment Setup (Optional)
 
-## Setup
-
-Create a `.env` file or set environment variables:
-
-```env
-# Source Database
-SOURCE_CONNECTION_STRING=postgresql://postgres:password@db.source-ref.supabase.co:5432/postgres
-
-# Target Database
-TARGET_CONNECTION_STRING=postgresql://postgres:password@db.target-ref.supabase.co:5432/postgres
-
-# Supabase Access Token (For Edge Functions)
-SUPABASE_ACCESS_TOKEN=sbp_...
-
-# Storage Migration API (Required for migrate:buckets)
-SOURCE_SUPABASE_URL=https://source-ref.supabase.co
-SOURCE_SERVICE_ROLE_KEY=ey...
-TARGET_SUPABASE_URL=https://target-ref.supabase.co
-TARGET_SERVICE_ROLE_KEY=ey...
-```
-
----
-
-## Usage Guide (Copy-Paste Examples)
-
-### 1. Complete Database Migration
-Migrate everything directly from one database to another.
+You can use a `.env` file or pass connection strings directly.
 
 ```bash
-supabase-migrator migrate:all \
-  --source "postgresql://postgres:password@db.source-ref.supabase.co:5432/postgres" \
-  --target "postgresql://postgres:password@db.target-ref.supabase.co:5432/postgres"
+SOURCE_CONNECTION_STRING="postgresql://postgres:password@db.source.supabase.co:5432/postgres"
+TARGET_CONNECTION_STRING="postgresql://postgres:password@db.target.supabase.co:5432/postgres"
+SUPABASE_ACCESS_TOKEN="sbp_your_personal_access_token"
 ```
 
-### 2. Edge Function Migration
-Deploy your edge functions from one project to another.
+---
 
+## 📖 Complete Command Guide (A to Z)
+
+### 🧩 1. Full Project Migration
+The most powerful command. Moves everything from Project A to Project B.
+
+**Migrate EVERYTHING:**
 ```bash
-supabase-migrator migrate:edge-functions \
-  --source "postgresql://postgres:password@db.source-ref.supabase.co:5432/postgres" \
-  --target "postgresql://postgres:password@db.target-ref.supabase.co:5432/postgres" \
-  --token "sbp_your_access_token_here"
+supabase-migrator migrate:all --source "SRC_URL" --target "TARGET_URL"
 ```
 
-### 3. Granular Schema Migration
-Migrate only specific parts of your database.
-
+**Migrate EVERYTHING (Fast Mode - skip prompts):**
 ```bash
-# Schema only (tables, types, indexes)
-supabase-migrator migrate:schema --source "..." --target "..."
-
-# Functions only
-supabase-migrator migrate:functions --source "..." --target "..."
-
-# Triggers only
-supabase-migrator migrate:triggers --source "..." --target "..."
+supabase-migrator migrate:all --source "SRC_URL" --target "TARGET_URL" --force
 ```
 
-### 4. Database Cleanup (Wipe)
-Powerful and destructive cleanup tools.
+---
 
+### 🏗️ 2. Granular Schema Migration
+If you only want to move specific parts of your database.
+
+**Migrate Schema only (Tables, Types, Indexes):**
 ```bash
-# FULL WIPE: Delete all tables, functions, and triggers in public schema
-supabase-migrator delete:all --source "..." --force
-
-# Data only: Truncate all tables
-supabase-migrator delete:data --source "..." --all --force
+supabase-migrator migrate:schema --source "SRC_URL" --target "TARGET_URL"
 ```
 
-### 5. Storage Migration
-Sync bucket configuration between projects.
-
+**Migrate Functions only:**
 ```bash
-supabase-migrator migrate:buckets \
-  --source-url "https://source.supabase.co" \
-  --source-key "ey..." \
-  --target-url "https://target.supabase.co" \
-  --target-key "ey..."
+supabase-migrator migrate:functions --source "SRC_URL" --target "TARGET_URL"
+```
+
+**Migrate Triggers only:**
+```bash
+supabase-migrator migrate:triggers --source "SRC_URL" --target "TARGET_URL"
 ```
 
 ---
 
-## Command List
+### 📊 3. Data Migration
+Move your data with precision. 
 
-| Command | Description |
-|---------|-------------|
-| `migrate:all` | Schema + Functions + Triggers + Data |
-| `migrate:schema` | Tables, Types, Constraints, Indexes |
-| `migrate:functions` | Migrate DB functions only |
-| `migrate:triggers` | Migrate DB triggers only |
-| `migrate:data` | Table data only (Streaming) |
-| `migrate:edge-functions` | Deploy Edge Functions between projects |
-| `migrate:buckets`| Sync storage buckets via Admin API |
-| `export:database`| Full introspection to SQL/JSON files |
-| `export:functions`| Export DB functions to SQL file |
-| `import:database`| Apply SQL files in correct order |
-| `export:bucket-policies`| Export storage RLS policies to SQL |
-| `delete:all` | FULL WIPE (Tables, Functions, Triggers) |
-| `delete:data` | TRUNCATE/DELETE table data |
-| `delete:function`| Drop functions (supports overloading) |
-| `delete:trigger` | Drop triggers |
+**Migrate data for ALL tables:**
+```bash
+supabase-migrator migrate:data --source "SRC_URL" --target "TARGET_URL"
+```
+
+**Migrate data for a SPECIFIC table:**
+```bash
+supabase-migrator migrate:data --source "SRC_URL" --target "TARGET_URL" --table "users"
+```
+
+**Migrate and CLEAN target before inserting (Truncate):**
+```bash
+supabase-migrator migrate:data --source "SRC_URL" --target "TARGET_URL" --truncate
+```
 
 ---
 
-## In-Depth Guides
+### ⚡ 4. Edge Functions Migration
+Requires a [Supabase Personal Access Token](https://supabase.com/dashboard/account/tokens).
 
-- [**Export Guide**](./EXPORT-GUIDE.md) - Deep dive into database introspection.
-- [**Import/Runner Guide**](./IMPORT-GUIDE.md) - How the migration runner works and idempotency.
-
----
-
-## Safety & Best Practices
-
-1. **Dry Run First**: Always use the `--dry-run` flag to preview changes.
-2. **Review SQL**: Before importing, review generated SQL files in the output directory.
-3. **Database Backups**: Take a snapshot of your target database before running destructive commands.
-4. **Service Role Keys**: Keep your `.env` keys secure. These keys bypass RLS and should be guarded.
+**Migrate all Edge Functions:**
+```bash
+supabase-migrator migrate:edge-functions --source "SRC_URL" --target "TARGET_URL" --token "your_token"
+```
 
 ---
 
-## License
+### 🪣 5. Storage & Buckets
+Move your files and permissions.
 
-MIT License. See [LICENSE](./LICENSE) for details.
+**Migrate Storage Buckets:**
+```bash
+supabase-migrator migrate:buckets --source-url "SRC_URL" --source-key "SRC_KEY" --target-url "TGT_URL" --target-key "TGT_KEY"
+```
 
----
-
-## Pre-publish Checklist
-
-Before publishing to npm, follow these steps to ensure a high-quality release:
-
-1. **Self-Check**:
-   - [ ] Version in `package.json` is updated according to SemVer.
-   - [ ] `.env.example` is up to date with new features.
-   - [ ] All sensitive credentials (tokens, passwords) are removed from code and examples.
-
-2. **Validation Commands**:
-   ```bash
-   # 1. Clean and build the package
-   npm run clean
-   npm run build
-
-   # 2. Run all tests
-   npm run test
-
-   # 3. Lint and format code
-   npm run lint
-   npm run format
-
-   # 4. Dry-run the package contents
-   npm pack --dry-run
-   ```
-
-3. **Verify Output**:
-   Check the `npm pack --dry-run` output. It should ONLY contain:
-   - `dist/` (CJS, ESM, and Types)
-   - `README.md`
-   - `LICENSE`
-   - `.env.example`
-   - `package.json`
-
-4. **Publish**:
-   ```bash
-   npm publish --access public
-   ```
+**Export Bucket Policies (SQL):**
+```bash
+supabase-migrator export:bucket-policies --source "SRC_URL"
+```
 
 ---
 
+### 🧹 6. Cleanup & Deletion
+Be careful! These commands are destructive.
+
+**DESTRUCTIVE: Wipe Target Database (Schema, functions, triggers, tables):**
+```bash
+supabase-migrator delete:all --source "TARGET_URL"
+```
+
+**Delete data from ALL tables (Keep structure):**
+```bash
+supabase-migrator delete:data --source "TARGET_URL" --all
+```
+
+**Delete data from ONE table:**
+```bash
+supabase-migrator delete:data --source "TARGET_URL" --table "logs"
+```
+
+**Delete ONE function:**
+```bash
+supabase-migrator delete:function --source "TARGET_URL" --function "my_func"
+```
+
+---
+
+### 💾 7. Backup & Offline Export
+Download your database as SQL files.
+
+**Export complete DB to SQL:**
+```bash
+supabase-migrator export:database --source "SRC_URL" --output "./backup"
+```
+
+**Export only functions:**
+```bash
+supabase-migrator export:functions --source "SRC_URL" --schema "public"
+```
+
+**Export specific table data to JSON:**
+```bash
+supabase-migrator export:database --source "SRC_URL" --table "products" --format json
+```
+
+**Import from local SQL files:**
+```bash
+supabase-migrator import:database --target "TARGET_URL" --source "./supabase-migrator"
+```
+
+---
+
+## ⚙️ Options & Flags
+
+| Flag | Description | Default |
+|------|-------------|---------|
+| `-s, --source` | Source Database connection string (Postgres URL) | Required |
+| `-t, --target` | Target Database connection string (Postgres URL) | Required |
+| `--schema` | Database schema to operate on | `public` |
+| `--table` | Filter operation to a single table name | - |
+| `--dry-run` | Log what would happen without making changes | `false` |
+| `--force` | Skip confirmation prompts for destructive actions | `false` |
+| `--truncate` | Delete existing data in target before migration | `false` |
+| `--batch-size` | Number of rows per batch for data sync | `1000` |
+| `--token` | Supabase Personal Access Token (for Edge Functions) | - |
+| `-o, --output` | Folder where logs and SQL exports are saved | `./supabase-migrator` |
+
+---
+
+## 💡 Best Practices
+
+1. **Always use `--dry-run` first**: Preview exactly what the tool will do before executing.
+2. **Back up your target**: Run `export:database` on your destination before migrating.
+3. **Use `--force` in CI/CD**: If running in a pipeline, use the `--force` flag to skip interactive prompts.
+4. **Primary Keys**: Ensure your tables have primary keys for the most reliable data migration.
+
+---
+
+## 🤝 Contributing
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## 📄 License
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+Developed with ❤️ by [Ali Nazar](https://github.com/AliNazar-111).
