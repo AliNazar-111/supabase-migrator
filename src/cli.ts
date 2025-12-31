@@ -43,6 +43,8 @@ function addGlobalOptions(cmd: Command): Command {
         .option('--target-url <url>', 'Target Supabase project URL (for storage)')
         .option('--target-key <key>', 'Target Supabase service role key (for storage)')
         .option('--token <token>', 'Supabase Access Token (Personal Access Token)')
+        .option('--source-token <token>', 'Source Supabase Access Token (for cross-org migration)')
+        .option('--target-token <token>', 'Target Supabase Access Token (for cross-org migration)')
         .option('-o, --output <folder>', 'Output folder for SQL files and logs', './supabase-migrator');
 }
 

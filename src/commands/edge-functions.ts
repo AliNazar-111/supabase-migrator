@@ -22,14 +22,20 @@ export class EdgeFunctionsCommand {
         this.logger.info(`Source Project Ref: ${sourceRef}`);
         this.logger.info(`Target Project Ref: ${targetRef}`);
 
-        if (options.token) {
-            process.env.SUPABASE_ACCESS_TOKEN = options.token;
+        const sourceToken = options.sourceToken || options.token;
+        const targetToken = options.targetToken || options.token;
+
+        if (!sourceToken && !targetToken) {
+            // Check env var
+            if (!process.env.SUPABASE_ACCESS_TOKEN) {
+                this.logger.warn('No access token provided via --token, --source-token, or SUPABASE_ACCESS_TOKEN. Operations may fail.');
+            }
         }
 
         try {
             // 1. List functions from source
             this.logger.info('Fetching edge functions from source...');
-            const functions = this.listFunctions(sourceRef);
+            const functions = this.listFunctions(sourceRef, sourceToken);
 
             if (functions.length === 0) {
                 return {
@@ -55,16 +61,24 @@ export class EdgeFunctionsCommand {
 
                     // 2. Download from source
                     this.logger.info(`  Downloading ${name} from source...`);
+                    const downloadEnv = { ...process.env };
+                    if (sourceToken) downloadEnv.SUPABASE_ACCESS_TOKEN = sourceToken;
+
                     execSync(`supabase functions download ${name} --project-ref ${sourceRef} --use-api`, {
                         cwd: tempDir,
-                        stdio: 'inherit'
+                        stdio: 'inherit',
+                        env: downloadEnv
                     });
 
                     // 3. Deploy to target
                     this.logger.info(`  Deploying ${name} to target...`);
+                    const deployEnv = { ...process.env };
+                    if (targetToken) deployEnv.SUPABASE_ACCESS_TOKEN = targetToken;
+
                     execSync(`supabase functions deploy ${name} --project-ref ${targetRef} --use-api`, {
                         cwd: tempDir,
-                        stdio: 'inherit'
+                        stdio: 'inherit',
+                        env: deployEnv
                     });
 
                     this.logger.success(`  Successfully migrated ${name}`);
@@ -105,17 +119,22 @@ export class EdgeFunctionsCommand {
         return match[1];
     }
 
-    private listFunctions(projectRef: string): string[] {
+    private listFunctions(projectRef: string, token?: string): string[] {
+        const env = { ...process.env };
+        if (token) env.SUPABASE_ACCESS_TOKEN = token;
+
         try {
             const output = execSync(`supabase functions list --project-ref ${projectRef} --output json`, {
-                encoding: 'utf8'
+                encoding: 'utf8',
+                env
             });
             const data = JSON.parse(output);
             return data.map((f: any) => f.slug || f.name);
         } catch (e: any) {
             // Fallback for non-json output if CLI version is old
             const output = execSync(`supabase functions list --project-ref ${projectRef}`, {
-                encoding: 'utf8'
+                encoding: 'utf8',
+                env
             });
             const lines = output.split('\n');
             const functions: string[] = [];

@@ -25,6 +25,8 @@ export interface GlobalOptions {
     targetUrl?: string;
     targetKey?: string;
     token?: string;
+    sourceToken?: string;
+    targetToken?: string;
 }
 
 export interface MigrationResult {

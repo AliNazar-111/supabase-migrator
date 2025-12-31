@@ -106,6 +106,16 @@ Requires a [Supabase Personal Access Token](https://supabase.com/dashboard/accou
 supabase-migrator migrate:edge-functions --source "SRC_URL" --target "TARGET_URL" --token "your_token"
 ```
 
+**Cross-Organization Migration (Separate Tokens):**
+If your source and target projects are in different organizations and you need separate tokens:
+```bash
+supabase-migrator migrate:edge-functions \
+  --source "SRC_URL" \
+  --target "TARGET_URL" \
+  --source-token "SOURCE_PAT" \
+  --target-token "TARGET_PAT"
+```
+
 ---
 
 ### 🪣 5. Storage & Buckets
@@ -186,6 +196,8 @@ supabase-migrator import:database --target "TARGET_URL" --source "./supabase-mig
 | `--truncate` | Delete existing data in target before migration | `false` |
 | `--batch-size` | Number of rows per batch for data sync | `1000` |
 | `--token` | Supabase Personal Access Token (for Edge Functions) | - |
+| `--source-token` | Source Supabase Access Token (for cross-org migration) | - |
+| `--target-token` | Target Supabase Access Token (for cross-org migration) | - |
 | `-o, --output` | Folder where logs and SQL exports are saved | `./supabase-migrator` |
 
 ---
@@ -215,3 +227,4 @@ supabase-migrator migrate:all --source "postgresql://postgres:pass@db.source.sup
 
 ## 📄 License
 This project is licensed under the MIT License - see the LICENSE file for details.
+ 
