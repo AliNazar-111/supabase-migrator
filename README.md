@@ -7,20 +7,20 @@
 
 ---
 
-## 🌟 Features
+## Features
 
-- ✅ **Complete Introspection** - Introspects extensions, custom types, sequences, tables, constraints, indexes, views, and functions.
-- ✅ **Schema Migration** - Safe recreation of complex schemas across projects.
-- ✅ **Data Migration** - Streaming/batched data export in SQL or JSON formats.
-- ✅ **Dependency-Aware** - Automatically orders table exports based on foreign key dependencies.
-- ✅ **Idempotent Imports** - SQL generations use `IF NOT EXISTS` and `CREATE OR REPLACE` for safe re-runs.
-- ✅ **Storage Support** - Securely sync buckets via Supabase Admin APIs and export RLS policies.
-- ✅ **Cleanup Utility** - Powerful `delete:*` commands with `TRUNCATE` and `CASCADE` support.
-- ✅ **Developer Friendly** - Detailed logs, dry-run modes, progress tracking, and interactive summaries.
+-  **Complete Introspection** - Introspects extensions, custom types, sequences, tables, constraints, indexes, views, and functions.
+-  **Schema Migration** - Safe recreation of complex schemas across projects.
+-  **Data Migration** - Streaming/batched data export in SQL or JSON formats.
+-  **Dependency-Aware** - Automatically orders table exports based on foreign key dependencies.
+-  **Idempotent Imports** - SQL generations use `IF NOT EXISTS` and `CREATE OR REPLACE` for safe re-runs.
+-  **Storage Support** - Securely sync buckets via Supabase Admin APIs and export RLS policies.
+-  **Cleanup Utility** - Powerful `delete:*` commands with `TRUNCATE` and `CASCADE` support.
+-  **Developer Friendly** - Detailed logs, dry-run modes, progress tracking, and interactive summaries.
 
 ---
 
-## 🚀 Installation
+## Installation
 
 ```bash
 # Install globally
@@ -32,7 +32,7 @@ npx supabase-migrator --help
 
 ---
 
-## ⚙️ Setup
+## Setup
 
 Create a `.env` file or set environment variables:
 
@@ -52,7 +52,7 @@ TARGET_SERVICE_ROLE_KEY=ey...
 
 ---
 
-## 🛠️ Usage Guide
+## Usage Guide
 
 ### 1. Database Migration (Direct)
 
@@ -135,7 +135,7 @@ supabase-migrator delete:function \
 
 ---
 
-## 📋 Command List
+## Command List
 
 | Command | Description |
 |---------|-------------|
@@ -152,14 +152,14 @@ supabase-migrator delete:function \
 
 ---
 
-## 📖 In-Depth Guides
+## In-Depth Guides
 
 - [**Export Guide**](./EXPORT-GUIDE.md) - Deep dive into database introspection.
 - [**Import/Runner Guide**](./IMPORT-GUIDE.md) - How the migration runner works and idempotency.
 
 ---
 
-## 🛡️ Safety & Best Practices
+## Safety & Best Practices
 
 1. **Dry Run First**: Always use the `--dry-run` flag to preview changes.
 2. **Review SQL**: Before importing, review generated SQL files in the output directory.
@@ -168,13 +168,8 @@ supabase-migrator delete:function \
 
 ---
 
-## ⚖️ License
+## License
 
 MIT License. See [LICENSE](./LICENSE) for details.
 
 ---
-
-## 🤝 Support
-
-Found a bug? [Open an issue](https://github.com/example/supabase-migrator/issues).
-Wanna contribute? Check out the [Contribution Guide](./CONTRIBUTING.md).

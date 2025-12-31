@@ -34,19 +34,19 @@ export class Logger {
     }
 
     info(message: string): void {
-        this.log(`ℹ ${message}`, 'info');
+        this.log(` ${message}`, 'info');
     }
 
     success(message: string): void {
-        this.log(`✅ ${message}`, 'success');
+        this.log(` ${message}`, 'success');
     }
 
     warn(message: string): void {
-        this.log(`⚠️  ${message}`, 'warn');
+        this.log(`  ${message}`, 'warn');
     }
 
     error(message: string): void {
-        this.log(`❌ ${message}`, 'error');
+        this.log(` ${message}`, 'error');
     }
 
     dryRun(message: string): void {

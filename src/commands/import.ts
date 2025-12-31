@@ -58,8 +58,8 @@ export class ImportCommand {
             // Detailed results
             this.logger.info('\nDetailed Results:');
             for (const result of results) {
-                const icon = result.status === 'succeeded' ? '✅' :
-                    result.status === 'failed' ? '❌' :
+                const icon = result.status === 'succeeded' ? '' :
+                    result.status === 'failed' ? '' :
                         result.status === 'skipped' ? '⏭️' : '⏳';
 
                 const duration = result.duration ? ` (${result.duration}ms)` : '';

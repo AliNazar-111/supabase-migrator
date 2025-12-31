@@ -8,29 +8,29 @@ The `export:database` command provides comprehensive PostgreSQL introspection an
 
 ### Schema Export
 Generates SQL to recreate:
-- ✅ **Schemas** - Schema definitions
-- ✅ **Extensions** - PostgreSQL extensions
-- ✅ **Custom Types** - Enum types and custom types
-- ✅ **Sequences** - Auto-increment sequences
-- ✅ **Tables** - Complete table definitions with columns, defaults, data types
-- ✅ **Constraints** - Primary keys, unique constraints, foreign keys, check constraints
-- ✅ **Indexes** - All indexes (excluding those created by constraints)
-- ✅ **Views** - View definitions
+-  **Schemas** - Schema definitions
+-  **Extensions** - PostgreSQL extensions
+-  **Custom Types** - Enum types and custom types
+-  **Sequences** - Auto-increment sequences
+-  **Tables** - Complete table definitions with columns, defaults, data types
+-  **Constraints** - Primary keys, unique constraints, foreign keys, check constraints
+-  **Indexes** - All indexes (excluding those created by constraints)
+-  **Views** - View definitions
 
 ### Functions Export
-- ✅ Complete function definitions using `pg_get_functiondef()`
-- ✅ Includes function body, parameters, return types, language
+-  Complete function definitions using `pg_get_functiondef()`
+-  Includes function body, parameters, return types, language
 
 ### Triggers Export
-- ✅ Complete trigger definitions using `pg_get_triggerdef()`
-- ✅ Includes timing (BEFORE/AFTER), events (INSERT/UPDATE/DELETE)
+-  Complete trigger definitions using `pg_get_triggerdef()`
+-  Includes timing (BEFORE/AFTER), events (INSERT/UPDATE/DELETE)
 
 ### Data Export
-- ✅ **SQL Format** - INSERT statements with proper escaping
-- ✅ **JSON Format** - JSON array of objects
-- ✅ **Streaming/Batched** - Memory-efficient processing
-- ✅ **Dependency Order** - Tables exported in FK-safe order
-- ✅ **Session Replication Role** - Disables triggers during import
+-  **SQL Format** - INSERT statements with proper escaping
+-  **JSON Format** - JSON array of objects
+-  **Streaming/Batched** - Memory-efficient processing
+-  **Dependency Order** - Tables exported in FK-safe order
+-  **Session Replication Role** - Disables triggers during import
 
 ## PostgreSQL Catalog Tables Used
 

@@ -76,7 +76,7 @@ export class MigrateAllCommand {
             this.logger.info('='.repeat(60));
 
             for (const result of results) {
-                const status = result.success ? '✅' : '❌';
+                const status = result.success ? '' : '';
                 this.logger.info(`${status} ${result.step}: ${result.message}`);
             }
 

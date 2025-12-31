@@ -6,23 +6,23 @@ The **Migration Runner** applies generated SQL files to a target database in the
 
 ## Features
 
-✅ **Correct Execution Order**
+ **Correct Execution Order**
 1. Schema (tables, types, constraints, indexes)
 2. Functions
 3. Triggers
 4. Data (in dependency-safe order)
 
-✅ **Idempotent Operations**
+ **Idempotent Operations**
 - `CREATE SCHEMA IF NOT EXISTS`
 - `CREATE OR REPLACE FUNCTION`
 - `DROP TRIGGER IF EXISTS` before `CREATE TRIGGER`
 - `INSERT ... ON CONFLICT DO NOTHING` for data
 
-✅ **Dry-Run Mode**
+ **Dry-Run Mode**
 - Preview what would be executed
 - No changes applied to database
 
-✅ **Detailed Logging**
+ **Detailed Logging**
 - Each step: started, succeeded, failed
 - Execution duration
 - Error messages with details and hints
@@ -182,7 +182,7 @@ File: ./supabase-migrator/schema-public.sql
 Type: schema
 ============================================================
 Executing...
-✅ Completed in 1234ms
+ Completed in 1234ms
 ```
 
 ### Error Logging
@@ -194,7 +194,7 @@ File: ./supabase-migrator/functions-public.sql
 Type: functions
 ============================================================
 Executing...
-❌ Failed after 567ms
+ Failed after 567ms
 Error: function "nonexistent_type" does not exist
 Detail: The function references a type that hasn't been created
 Hint: Ensure all custom types are defined in schema.sql
@@ -211,13 +211,13 @@ Succeeded: 5
 Failed: 1
 
 Detailed Results:
-✅ Schema (1234ms)
-✅ Functions (567ms)
-❌ Triggers (234ms)
+ Schema (1234ms)
+ Functions (567ms)
+ Triggers (234ms)
    Error: trigger "my_trigger" already exists
 ⏭️ Data: users (skipped - empty file)
-✅ Data: posts (3456ms)
-✅ Data: comments (2345ms)
+ Data: posts (3456ms)
+ Data: comments (2345ms)
 ```
 
 ## Dry-Run Mode
@@ -244,7 +244,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp" SCHEMA public;
 CREATE TYPE "public"."user_role" AS ENUM ('admin', 'user');
 ...
 ... (150 more lines)
-✅ Completed in 12ms
+ Completed in 12ms
 ```
 
 ## Error Handling
@@ -254,7 +254,7 @@ CREATE TYPE "public"."user_role" AS ENUM ('admin', 'user');
 By default, migration stops at the first error:
 
 ```
-❌ Failed at step: Functions
+ Failed at step: Functions
 Stopping migration process
 ```
 
@@ -277,29 +277,29 @@ After fixing errors:
 
 ### Schema
 
-✅ **Safe to re-run:**
+ **Safe to re-run:**
 - `CREATE SCHEMA IF NOT EXISTS`
 - `CREATE TABLE IF NOT EXISTS`
 - `CREATE EXTENSION IF NOT EXISTS`
 - `CREATE TYPE` (will error if exists, but harmless)
 
-⚠️ **May error but safe:**
+ **May error but safe:**
 - `ALTER TABLE ADD CONSTRAINT` (errors if constraint exists)
 - `CREATE INDEX` (errors if index exists)
 
 ### Functions
 
-✅ **Safe to re-run:**
+ **Safe to re-run:**
 - `CREATE OR REPLACE FUNCTION` (always safe)
 
 ### Triggers
 
-✅ **Safe to re-run:**
+ **Safe to re-run:**
 - `DROP TRIGGER IF EXISTS` + `CREATE TRIGGER` (always safe)
 
 ### Data
 
-✅ **Safe to re-run:**
+ **Safe to re-run:**
 - `INSERT ... ON CONFLICT DO NOTHING` (skips duplicates)
 - `session_replication_role = replica` (disables triggers)
 
